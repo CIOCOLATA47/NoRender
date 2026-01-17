@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.cioco.norender.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MixinClientWorld",
+    "MixinEntityRenderer",
+    "MixinGameRenderer",
+    "MixinInGameHud",
+    "MixinInGameOverlayRenderer",
+    "MixinParticleManager",
+    "MixinWorldRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "MixinLivingEntity"
+  ]
+}

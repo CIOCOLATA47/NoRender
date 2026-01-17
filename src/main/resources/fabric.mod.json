@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "norender",
+  "version": "${version}",
+  "name": "NoRender",
+  "description": "A mod that allows u to toggle rendering of things",
+  "authors": [
+    "Ciocolata47"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/norender+",
+    "sources": "https://github.com/CIOCOLATA47/NoRender",
+    "issues": "https://github.com/CIOCOLATA47/NoRender/issues"
+  },
+  "license": "MIT",
+  "icon": "icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "me.cioco.norender.Main"
+    ]
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.kofi": "https://ko-fi.com/ciocolata47"
+      }
+    }
+  },
+  "mixins": [
+    "norender.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": ">=1.21.11"
+  }
+}
