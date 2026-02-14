@@ -10,7 +10,10 @@
     "MixinInGameHud",
     "MixinInGameOverlayRenderer",
     "MixinParticleManager",
-    "MixinWorldRenderer"
+    "MixinWorldRenderer",
+    "NoEnchantGlintMixin",
+    "NoRenderArmorMixin",
+    "NoRenderHeadFeatureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

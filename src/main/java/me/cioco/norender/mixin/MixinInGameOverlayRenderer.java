@@ -2,7 +2,6 @@ package me.cioco.norender.mixin;
 
 import me.cioco.norender.config.NoRenderCfg;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameOverlayRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.texture.Sprite;

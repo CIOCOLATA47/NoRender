@@ -16,7 +16,7 @@
   "icon": "icon.png",
   "environment": "client",
   "entrypoints": {
-    "main": [
+    "client": [
       "me.cioco.norender.Main"
     ]
   },

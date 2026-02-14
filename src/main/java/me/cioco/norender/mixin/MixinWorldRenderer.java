@@ -4,7 +4,6 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import me.cioco.norender.config.NoRenderCfg;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.FrameGraphBuilder;
-import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
