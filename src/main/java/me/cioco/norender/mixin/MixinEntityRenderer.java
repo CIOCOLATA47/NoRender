@@ -26,7 +26,6 @@ public abstract class MixinEntityRenderer<T extends Entity> {
             cir.setReturnValue(false);
             return;
         }
-
         if (NoRenderCfg.noExperienceOrbs && entity instanceof net.minecraft.entity.ExperienceOrbEntity) {
             cir.setReturnValue(false);
         }

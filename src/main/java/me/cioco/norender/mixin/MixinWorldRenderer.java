@@ -25,4 +25,11 @@ public class MixinWorldRenderer {
             cir.cancel();
         }
     }
+
+    @Inject(method = "renderParticles", at = @At("HEAD"), cancellable = true)
+    private void cancelVaultParticles(CallbackInfo ci) {
+        if (NoRenderCfg.noVaultParticles) {
+            ci.cancel();
+        }
+    }
 }

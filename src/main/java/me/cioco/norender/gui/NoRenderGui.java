@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -18,13 +19,16 @@ public class NoRenderGui extends Screen {
     private static final int SPACING_Y = 24;
     private static final int SECTION_MARGIN = 35;
     private static final int TITLE_HEIGHT = 20;
+    private static final int SCROLL_TOP = 65;
+
     private final Screen parent;
-    private final List<ClickableWidget> scrollableWidgets = new ArrayList<>();
+    private final List<WidgetEntry> widgetEntries = new ArrayList<>();
     private int scrollOffset = 0;
     private int maxScroll;
     private int contentHeight;
     private ButtonWidget doneButton;
-
+    private TextFieldWidget searchField;
+    private String searchQuery = "";
     public NoRenderGui(Screen parent) {
         super(Text.literal("NoRender Options"));
         this.parent = parent;
@@ -33,12 +37,31 @@ public class NoRenderGui extends Screen {
     @Override
     protected void init() {
         this.clearChildren();
-        this.scrollableWidgets.clear();
+        this.widgetEntries.clear();
+        scrollOffset = 0;
+        searchQuery = "";
 
         int centerX = width / 2;
         int leftCol = centerX - 155;
         int rightCol = centerX + 5;
         int currentY = 70;
+
+        searchField = new TextFieldWidget(
+                textRenderer,
+                centerX - 155, 40,
+                310, 20,
+                Text.literal("Search...")
+        );
+        searchField.setMaxLength(64);
+        searchField.setPlaceholder(Text.literal("Search options...").formatted(Formatting.GRAY));
+        searchField.setText("");
+        searchField.setChangedListener(text -> {
+            searchQuery = text.toLowerCase().trim();
+            scrollOffset = 0;
+            applySearch();
+            if (!searchQuery.isEmpty()) scrollToFirstMatch();
+        });
+        addDrawableChild(searchField);
 
         addOverlayButtons(leftCol, rightCol, currentY);
         currentY += (SPACING_Y * 5) + SECTION_MARGIN;
@@ -50,10 +73,10 @@ public class NoRenderGui extends Screen {
         currentY += (SPACING_Y * 8) + SECTION_MARGIN;
 
         addNewEraParticleButtons(leftCol, rightCol, currentY);
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
+        currentY += (SPACING_Y * 7) + SECTION_MARGIN;
 
         addTechnicalButtons(leftCol, rightCol, currentY);
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
+        currentY += (SPACING_Y * 8) + SECTION_MARGIN;
 
         contentHeight = currentY;
         maxScroll = Math.max(0, contentHeight - (height - 90));
@@ -62,12 +85,55 @@ public class NoRenderGui extends Screen {
                 Text.literal("SAVE & EXIT").formatted(Formatting.AQUA, Formatting.BOLD),
                 b -> this.close()
         ).dimensions(centerX - 100, height - 30, 200, 20).build();
-
         addDrawableChild(doneButton);
-        updateWidgetPositions();
+
+        syncWidgetPositions();
     }
 
-    private void updateWidgetPositions() {
+    private void syncWidgetPositions() {
+        for (WidgetEntry entry : widgetEntries) {
+            entry.widget().setX(entry.originalX());
+            entry.widget().setY(entry.originalY() - scrollOffset);
+            entry.widget().visible = true;
+        }
+    }
+
+    private void applySearch() {
+        if (searchQuery.isEmpty()) {
+            syncWidgetPositions();
+            contentHeight = widgetEntries.isEmpty() ? 200
+                    : widgetEntries.stream().mapToInt(e -> e.originalY() + 20).max().orElse(200) + 40;
+        } else {
+            int centerX = width / 2;
+            int leftCol = centerX - 155;
+            int rightCol = centerX + 5;
+            int y = 85;
+            boolean useLeft = true;
+
+            for (WidgetEntry entry : widgetEntries) {
+                String label = entry.widget().getMessage().getString().toLowerCase();
+                if (label.contains(searchQuery)) {
+                    entry.widget().visible = true;
+                    entry.widget().setX(useLeft ? leftCol : rightCol);
+                    entry.widget().setY(y - scrollOffset);
+                    if (!useLeft) y += SPACING_Y;
+                    useLeft = !useLeft;
+                } else {
+                    entry.widget().visible = false;
+                }
+            }
+            if (!useLeft) y += SPACING_Y;
+            contentHeight = Math.max(y + 40, height);
+        }
+        maxScroll = Math.max(0, contentHeight - (height - 90));
+    }
+
+    private void scrollToFirstMatch() {
+        for (WidgetEntry entry : widgetEntries) {
+            if (entry.widget().visible) {
+                break;
+            }
+        }
     }
 
     @Override
@@ -78,31 +144,50 @@ public class NoRenderGui extends Screen {
         int panelW = 325;
         int panelX = cx - (panelW / 2);
 
-        ctx.drawCenteredTextWithShadow(textRenderer, Text.literal("NoRender").formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE), cx, 15, 0xFFFFFFFF);
+        ctx.drawCenteredTextWithShadow(textRenderer,
+                Text.literal("NoRender").formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE),
+                cx, 15, 0xFFFFFFFF);
 
-        ctx.enableScissor(0, 40, width, height - 40);
+        ctx.enableScissor(0, SCROLL_TOP, width, height - 40);
 
-        int currentY = 70 - scrollOffset;
-        renderSectionGroup(ctx, panelX, currentY, panelW, 5, "Overlays");
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
-        renderSectionGroup(ctx, panelX, currentY, panelW, 5, "World & Entities");
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
-        renderSectionGroup(ctx, panelX, currentY, panelW, 8, "Common Particles");
-        currentY += (SPACING_Y * 8) + SECTION_MARGIN;
-        renderSectionGroup(ctx, panelX, currentY, panelW, 5, "Sculk & Trial Chambers");
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
-        renderSectionGroup(ctx, panelX, currentY, panelW, 4, "Nether, End & Game");
+        if (searchQuery.isEmpty()) {
+            int y = 70 - scrollOffset;
+            renderSectionGroup(ctx, panelX, y, panelW, 5, "Overlays");
+            y += (SPACING_Y * 5) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 5, "World & Entities");
+            y += (SPACING_Y * 5) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 8, "Common Particles");
+            y += (SPACING_Y * 8) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 7, "Sculk & Trial Chambers");
+            y += (SPACING_Y * 7) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 8, "Nether, End & Game");
+        } else {
+            ctx.drawTextWithShadow(textRenderer,
+                    Text.literal("§7Results for: §b\"" + searchQuery + "\""),
+                    panelX, 68, 0xFFFFFF);
+        }
 
-        for (var element : children()) {
-            if (element instanceof ClickableWidget btn && btn != doneButton) {
-                btn.visible = (btn.getY() + btn.getHeight() > 40 && btn.getY() < height - 40);
-                if (btn.visible) {
-                    btn.render(ctx, mouseX, mouseY, delta);
-                }
+        for (WidgetEntry entry : widgetEntries) {
+            ClickableWidget btn = entry.widget();
+            if (!btn.visible) continue;
+            int btnBottom = btn.getY() + btn.getHeight();
+            if (btnBottom > SCROLL_TOP && btn.getY() < height - 40) {
+                btn.render(ctx, mouseX, mouseY, delta);
             }
         }
+
         ctx.disableScissor();
 
+        if (!searchQuery.isEmpty()) {
+            boolean anyVisible = widgetEntries.stream().anyMatch(e -> e.widget().visible);
+            if (!anyVisible) {
+                ctx.drawCenteredTextWithShadow(textRenderer,
+                        Text.literal("§cNo results for \"" + searchQuery + "\""),
+                        cx, height / 2, 0xFFFFFFFF);
+            }
+        }
+
+        searchField.render(ctx, mouseX, mouseY, delta);
         doneButton.render(ctx, mouseX, mouseY, delta);
         drawScrollBar(ctx);
     }
@@ -112,10 +197,11 @@ public class NoRenderGui extends Screen {
         if (maxScroll > 0) {
             int oldOffset = scrollOffset;
             scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - (verticalAmount * 25)));
-
             int diff = oldOffset - scrollOffset;
-            for (ClickableWidget widget : scrollableWidgets) {
-                widget.setY(widget.getY() + diff);
+            for (WidgetEntry entry : widgetEntries) {
+                if (entry.widget().visible) {
+                    entry.widget().setY(entry.widget().getY() + diff);
+                }
             }
             return true;
         }
@@ -124,12 +210,12 @@ public class NoRenderGui extends Screen {
 
     private void add(int x, int y, String label, String desc, boolean val, Consumer<Boolean> action) {
         ButtonWidget btn = createToggleButton(x, y, label, desc, val, action);
-        scrollableWidgets.add(btn);
+        widgetEntries.add(new WidgetEntry(btn, x, y));
         addDrawableChild(btn);
     }
 
     private void renderSectionGroup(DrawContext ctx, int x, int y, int w, int buttonRows, String title) {
-        int contentH = (buttonRows * SPACING_Y);
+        int contentH = buttonRows * SPACING_Y;
         drawStyledPanel(ctx, x, y - TITLE_HEIGHT - 5, w, contentH + TITLE_HEIGHT + 10);
         ctx.drawTextWithShadow(textRenderer, "§b§l» §f" + title, x + 8, y - TITLE_HEIGHT + 1, 0xFFFFFFFF);
         ctx.fill(x + 5, y - 6, x + w - 5, y - 5, 0x8000FFFF);
@@ -151,16 +237,18 @@ public class NoRenderGui extends Screen {
 
     private ButtonWidget createToggleButton(int x, int y, String label, String desc, boolean init, Consumer<Boolean> action) {
         return ButtonWidget.builder(getToggleText(label, init), b -> {
-                    boolean currentlyOn = b.getMessage().getString().contains("ON");
-                    action.accept(!currentlyOn);
-                    b.setMessage(getToggleText(label, !currentlyOn));
+                    boolean on = b.getMessage().getString().contains("ON");
+                    action.accept(!on);
+                    b.setMessage(getToggleText(label, !on));
                 }).dimensions(x, y, 150, 20)
                 .tooltip(Tooltip.of(Text.literal("§e" + desc)))
                 .build();
     }
 
     private Text getToggleText(String label, boolean value) {
-        return Text.literal(label + ": ").append(value ? Text.literal("ON").formatted(Formatting.GREEN) : Text.literal("OFF").formatted(Formatting.RED));
+        return Text.literal(label + ": ").append(value
+                ? Text.literal("ON").formatted(Formatting.GREEN)
+                : Text.literal("OFF").formatted(Formatting.RED));
     }
 
     private void addOverlayButtons(int left, int right, int y) {
@@ -168,12 +256,12 @@ public class NoRenderGui extends Screen {
         add(right, y, "Fire", "Hide fire overlay", NoRenderCfg.noFireOverlay, v -> NoRenderCfg.noFireOverlay = v);
         add(left, y + SPACING_Y, "Nausea", "Hide nausea tilt", NoRenderCfg.noNausea, v -> NoRenderCfg.noNausea = v);
         add(right, y + SPACING_Y, "Darkness", "Hide darkness", NoRenderCfg.noDarkness, v -> NoRenderCfg.noDarkness = v);
-        add(left, y + (SPACING_Y * 2), "Pumpkin", "Hide pumpkin blur", NoRenderCfg.noPumpkinOverlay, v -> NoRenderCfg.noPumpkinOverlay = v);
-        add(right, y + (SPACING_Y * 2), "Vignette", "Hide dark corners", NoRenderCfg.noVignette, v -> NoRenderCfg.noVignette = v);
-        add(left, y + (SPACING_Y * 3), "Enchant Glint", "Hide item glow", NoRenderCfg.noEnchantmentGlint, v -> NoRenderCfg.noEnchantmentGlint = v);
-        add(right, y + (SPACING_Y * 3), "PowderSnow", "Removes powdersnow overlay", NoRenderCfg.noPowderedSnowOverlay, v -> NoRenderCfg.noPowderedSnowOverlay = v);
-        add(left, y + (SPACING_Y * 4), "Spyglass", "Hide spyglass container", NoRenderCfg.noSpyglassOverlay, v -> NoRenderCfg.noSpyglassOverlay = v);
-        add(right, y + (SPACING_Y * 4), "Liquid", "Hide water/lava tint", NoRenderCfg.noLiquidOverlay, v -> NoRenderCfg.noLiquidOverlay = v);
+        add(left, y + SPACING_Y * 2, "Pumpkin", "Hide pumpkin blur", NoRenderCfg.noPumpkinOverlay, v -> NoRenderCfg.noPumpkinOverlay = v);
+        add(right, y + SPACING_Y * 2, "Vignette", "Hide dark corners", NoRenderCfg.noVignette, v -> NoRenderCfg.noVignette = v);
+        add(left, y + SPACING_Y * 3, "Enchant Glint", "Hide item glow", NoRenderCfg.noEnchantmentGlint, v -> NoRenderCfg.noEnchantmentGlint = v);
+        add(right, y + SPACING_Y * 3, "PowderSnow", "Removes powdersnow overlay", NoRenderCfg.noPowderedSnowOverlay, v -> NoRenderCfg.noPowderedSnowOverlay = v);
+        add(left, y + SPACING_Y * 4, "Spyglass", "Hide spyglass container", NoRenderCfg.noSpyglassOverlay, v -> NoRenderCfg.noSpyglassOverlay = v);
+        add(right, y + SPACING_Y * 4, "Liquid", "Hide water/lava tint", NoRenderCfg.noLiquidOverlay, v -> NoRenderCfg.noLiquidOverlay = v);
     }
 
     private void addWorldButtons(int left, int right, int y) {
@@ -181,11 +269,11 @@ public class NoRenderGui extends Screen {
         add(right, y, "In Wall", "Hide inside-block tint", NoRenderCfg.noInWallOverlay, v -> NoRenderCfg.noInWallOverlay = v);
         add(left, y + SPACING_Y, "Items", "Hide dropped items", NoRenderCfg.noDroppedItems, v -> NoRenderCfg.noDroppedItems = v);
         add(right, y + SPACING_Y, "XP Orbs", "Hide XP Orbs", NoRenderCfg.noExperienceOrbs, v -> NoRenderCfg.noExperienceOrbs = v);
-        add(left, y + (SPACING_Y * 2), "Frames", "Hide item frames", NoRenderCfg.noItemFrames, v -> NoRenderCfg.noItemFrames = v);
-        add(right, y + (SPACING_Y * 2), "Stands", "Hide armor stands", NoRenderCfg.noArmorStands, v -> NoRenderCfg.noArmorStands = v);
-        add(left, y + (SPACING_Y * 3), "Armor", "Hide player armor", NoRenderCfg.noArmor, v -> NoRenderCfg.noArmor = v);
-        add(right, y + (SPACING_Y * 3), "Potion Icons", "Hide HUD effect icons", NoRenderCfg.noPotionIcons, v -> NoRenderCfg.noPotionIcons = v);
-        add(left, y + (SPACING_Y * 4), "Totem Anim", "Hide big totem icon", NoRenderCfg.noTotemAnimation, v -> NoRenderCfg.noTotemAnimation = v);
+        add(left, y + SPACING_Y * 2, "Frames", "Hide item frames", NoRenderCfg.noItemFrames, v -> NoRenderCfg.noItemFrames = v);
+        add(right, y + SPACING_Y * 2, "Stands", "Hide armor stands", NoRenderCfg.noArmorStands, v -> NoRenderCfg.noArmorStands = v);
+        add(left, y + SPACING_Y * 3, "Armor", "Hide player armor", NoRenderCfg.noArmor, v -> NoRenderCfg.noArmor = v);
+        add(right, y + SPACING_Y * 3, "Potion Icons", "Hide HUD effect icons", NoRenderCfg.noPotionIcons, v -> NoRenderCfg.noPotionIcons = v);
+        add(left, y + SPACING_Y * 4, "Totem Anim", "Hide big totem icon", NoRenderCfg.noTotemAnimation, v -> NoRenderCfg.noTotemAnimation = v);
     }
 
     private void addCommonParticleButtons(int left, int right, int y) {
@@ -193,18 +281,18 @@ public class NoRenderGui extends Screen {
         add(right, y, "Fireworks", "Hide sparks", NoRenderCfg.noFireworks, v -> NoRenderCfg.noFireworks = v);
         add(left, y + SPACING_Y, "Campfire", "Hide smoke", NoRenderCfg.noCampfireSmoke, v -> NoRenderCfg.noCampfireSmoke = v);
         add(right, y + SPACING_Y, "Hearts", "Hide love hearts", NoRenderCfg.noHeartParticles, v -> NoRenderCfg.noHeartParticles = v);
-        add(left, y + (SPACING_Y * 2), "Eating", "Hide food crumbs", NoRenderCfg.noEatParticles, v -> NoRenderCfg.noEatParticles = v);
-        add(right, y + (SPACING_Y * 2), "Blocks", "Hide break particles", NoRenderCfg.noBlockBreakParticles, v -> NoRenderCfg.noBlockBreakParticles = v);
-        add(left, y + (SPACING_Y * 3), "Potion Swap", "Hide swirls", NoRenderCfg.noPotionParticles, v -> NoRenderCfg.noPotionParticles = v);
-        add(right, y + (SPACING_Y * 3), "Damage", "Hide hit indicators", NoRenderCfg.noDamageParticles, v -> NoRenderCfg.noDamageParticles = v);
-        add(left, y + (SPACING_Y * 4), "Sweep", "Hide sword sweep", NoRenderCfg.noSweepParticles, v -> NoRenderCfg.noSweepParticles = v);
-        add(right, y + (SPACING_Y * 4), "Fall Dust", "Hide sand dust", NoRenderCfg.noFallingDust, v -> NoRenderCfg.noFallingDust = v);
-        add(left, y + (SPACING_Y * 5), "Flame", "Hide torch/fire", NoRenderCfg.noFlameParticles, v -> NoRenderCfg.noFlameParticles = v);
-        add(right, y + (SPACING_Y * 5), "Smoke", "Hide basic smoke", NoRenderCfg.noSmokeParticles, v -> NoRenderCfg.noSmokeParticles = v);
-        add(left, y + (SPACING_Y * 6), "Bubbles", "Hide water bubbles", NoRenderCfg.noBubbleParticles, v -> NoRenderCfg.noBubbleParticles = v);
-        add(right, y + (SPACING_Y * 6), "Crits", "Hide crit sparks", NoRenderCfg.noCritParticles, v -> NoRenderCfg.noCritParticles = v);
-        add(left, y + (SPACING_Y * 7), "Clouds", "Hide cloud particles", NoRenderCfg.noCloudParticles, v -> NoRenderCfg.noCloudParticles = v);
-        add(right, y + (SPACING_Y * 7), "Totem Part.", "Hide totem particles", NoRenderCfg.noTotemParticles, v -> NoRenderCfg.noTotemParticles = v);
+        add(left, y + SPACING_Y * 2, "Eating", "Hide food crumbs", NoRenderCfg.noEatParticles, v -> NoRenderCfg.noEatParticles = v);
+        add(right, y + SPACING_Y * 2, "Blocks", "Hide break particles", NoRenderCfg.noBlockBreakParticles, v -> NoRenderCfg.noBlockBreakParticles = v);
+        add(left, y + SPACING_Y * 3, "Potion Swap", "Hide swirls", NoRenderCfg.noPotionParticles, v -> NoRenderCfg.noPotionParticles = v);
+        add(right, y + SPACING_Y * 3, "Damage", "Hide hit indicators", NoRenderCfg.noDamageParticles, v -> NoRenderCfg.noDamageParticles = v);
+        add(left, y + SPACING_Y * 4, "Sweep", "Hide sword sweep", NoRenderCfg.noSweepParticles, v -> NoRenderCfg.noSweepParticles = v);
+        add(right, y + SPACING_Y * 4, "Fall Dust", "Hide sand dust", NoRenderCfg.noFallingDust, v -> NoRenderCfg.noFallingDust = v);
+        add(left, y + SPACING_Y * 5, "Flame", "Hide torch/fire", NoRenderCfg.noFlameParticles, v -> NoRenderCfg.noFlameParticles = v);
+        add(right, y + SPACING_Y * 5, "Smoke", "Hide basic smoke", NoRenderCfg.noSmokeParticles, v -> NoRenderCfg.noSmokeParticles = v);
+        add(left, y + SPACING_Y * 6, "Bubbles", "Hide water bubbles", NoRenderCfg.noBubbleParticles, v -> NoRenderCfg.noBubbleParticles = v);
+        add(right, y + SPACING_Y * 6, "Crits", "Hide crit sparks", NoRenderCfg.noCritParticles, v -> NoRenderCfg.noCritParticles = v);
+        add(left, y + SPACING_Y * 7, "Clouds", "Hide cloud particles", NoRenderCfg.noCloudParticles, v -> NoRenderCfg.noCloudParticles = v);
+        add(right, y + SPACING_Y * 7, "Totem Part.", "Hide totem particles", NoRenderCfg.noTotemParticles, v -> NoRenderCfg.noTotemParticles = v);
     }
 
     private void addNewEraParticleButtons(int left, int right, int y) {
@@ -212,20 +300,29 @@ public class NoRenderGui extends Screen {
         add(right, y, "Ominous", "Remove ominous visual effects from Trial events", NoRenderCfg.noOminousSpawning, v -> NoRenderCfg.noOminousSpawning = v);
         add(left, y + SPACING_Y, "Infested", "Hide silverfish particle effects from infested blocks", NoRenderCfg.noInfestedParticles, v -> NoRenderCfg.noInfestedParticles = v);
         add(right, y + SPACING_Y, "Wind Explosion", "Suppress gust/blast particles from wind events", NoRenderCfg.noWindExplosion, v -> NoRenderCfg.noWindExplosion = v);
-        add(left, y + (SPACING_Y * 2), "Trial Flame", "Disable flame effects from Trial Spawner fire traps", NoRenderCfg.noTrialSpawnerFlame, v -> NoRenderCfg.noTrialSpawnerFlame = v);
-        add(right, y + (SPACING_Y * 2), "Sonic Boom", "Remove shockwave particles from Warden attacks", NoRenderCfg.noSonicBoom, v -> NoRenderCfg.noSonicBoom = v);
-        add(left, y + (SPACING_Y * 3), "Sculk Charge", "Hide Sculk Charge particle effects during spreading", NoRenderCfg.noSculkCharge, v -> NoRenderCfg.noSculkCharge = v);
-        add(right, y + (SPACING_Y * 3), "Vibrations", "Remove Sculk vibration line particles for sensors", NoRenderCfg.noVibration, v -> NoRenderCfg.noVibration = v);
-        add(left, y + (SPACING_Y * 4), "Shrieks", "Suppress loud Warden shriek particle effects", NoRenderCfg.noShriekParticle, v -> NoRenderCfg.noShriekParticle = v);
-        add(right, y + (SPACING_Y * 4), "Cobwebs", "Hide cobweb visual particles in Trial areas", NoRenderCfg.noCobwebParticles, v -> NoRenderCfg.noCobwebParticles = v);
+        add(left, y + SPACING_Y * 2, "Trial Flame", "Disable flame effects from Trial Spawner fire traps", NoRenderCfg.noTrialSpawnerFlame, v -> NoRenderCfg.noTrialSpawnerFlame = v);
+        add(right, y + SPACING_Y * 2, "Sonic Boom", "Remove shockwave particles from Warden attacks", NoRenderCfg.noSonicBoom, v -> NoRenderCfg.noSonicBoom = v);
+        add(left, y + SPACING_Y * 3, "Sculk Charge", "Hide Sculk Charge particle effects during spreading", NoRenderCfg.noSculkCharge, v -> NoRenderCfg.noSculkCharge = v);
+        add(right, y + SPACING_Y * 3, "Vibrations", "Remove Sculk vibration line particles for sensors", NoRenderCfg.noVibration, v -> NoRenderCfg.noVibration = v);
+        add(left, y + SPACING_Y * 4, "Shrieks", "Suppress loud Warden shriek particle effects", NoRenderCfg.noShriekParticle, v -> NoRenderCfg.noShriekParticle = v);
+        add(right, y + SPACING_Y * 4, "Cobwebs", "Hide cobweb visual particles in Trial areas", NoRenderCfg.noCobwebParticles, v -> NoRenderCfg.noCobwebParticles = v);
+        add(left, y + SPACING_Y * 5, "Vault Part.", "Hide vault particle effects in Trial Chambers", NoRenderCfg.noVaultParticles, v -> NoRenderCfg.noVaultParticles = v);
+        add(right, y + SPACING_Y * 5, "Omen Effect", "Hide omen visual effect", NoRenderCfg.noOmenEffect, v -> NoRenderCfg.noOmenEffect = v);
     }
-
 
     private void addTechnicalButtons(int left, int right, int y) {
         add(left, y, "Nether Ash", "Basalt Deltas ash", NoRenderCfg.noAsh, v -> NoRenderCfg.noAsh = v);
         add(right, y, "Soul Particles", "Soul sand effects", NoRenderCfg.noSoulParticles, v -> NoRenderCfg.noSoulParticles = v);
         add(left, y + SPACING_Y, "Dragon Breath", "Ender Dragon gas", NoRenderCfg.noDragonBreath, v -> NoRenderCfg.noDragonBreath = v);
         add(right, y + SPACING_Y, "Drips", "Water/Lava drips", NoRenderCfg.noDripParticles, v -> NoRenderCfg.noDripParticles = v);
+        add(left, y + SPACING_Y * 2, "Chests", "Hide chest models", NoRenderCfg.noChests, v -> NoRenderCfg.noChests = v);
+        add(right, y + SPACING_Y * 2, "Boss Bar", "Hide boss health bar", NoRenderCfg.noBossBar, v -> NoRenderCfg.noBossBar = v);
+        add(left, y + SPACING_Y * 3, "Scoreboard", "Hide sidebar scoreboard", NoRenderCfg.noScoreboard, v -> NoRenderCfg.noScoreboard = v);
+        add(right, y + SPACING_Y * 3, "Banners", "Hide banner models", NoRenderCfg.noBanners, v -> NoRenderCfg.noBanners = v);
+        add(left, y + SPACING_Y * 4, "Shulker Boxes", "Hide shulker box models", NoRenderCfg.noShulkerBoxes, v -> NoRenderCfg.noShulkerBoxes = v);
+        add(right, y + SPACING_Y * 4, "Sign Text", "Hide text rendered on signs", NoRenderCfg.noSignText, v -> NoRenderCfg.noSignText = v);
+        add(left, y + SPACING_Y * 5, "Beacon Beam", "Hide beacon beam column", NoRenderCfg.noBeaconBeam, v -> NoRenderCfg.noBeaconBeam = v);
+        add(right, y + SPACING_Y * 5, "Conduit Eye", "Hide conduit eye/particle effects", NoRenderCfg.noConduitEye, v -> NoRenderCfg.noConduitEye = v);
     }
 
     @Override
@@ -234,5 +331,8 @@ public class NoRenderGui extends Screen {
         if (this.client != null) {
             this.client.setScreen(this.parent);
         }
+    }
+
+    private record WidgetEntry(ClickableWidget widget, int originalX, int originalY) {
     }
 }

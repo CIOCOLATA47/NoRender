@@ -73,6 +73,17 @@ public class NoRenderCfg {
     public static boolean noSoulParticles = false;
     public static boolean noDragonBreath = false;
 
+    public static boolean noBossBar = false;
+    public static boolean noScoreboard = false;
+    public static boolean noBanners = false;
+    public static boolean noShulkerBoxes = false;
+    public static boolean noChests = false;
+    public static boolean noVaultParticles = false;
+    public static boolean noOmenEffect = false;
+    public static boolean noSignText = false;
+    public static boolean noBeaconBeam = false;
+    public static boolean noConduitEye = false;
+
     public static void saveConfiguration() {
         try {
             Path configPath = getConfigPath();

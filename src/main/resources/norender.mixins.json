@@ -4,6 +4,7 @@
   "package": "me.cioco.norender.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "HideSignTextMixin",
     "MixinClientWorld",
     "MixinEntityRenderer",
     "MixinGameRenderer",
@@ -11,9 +12,15 @@
     "MixinInGameOverlayRenderer",
     "MixinParticleManager",
     "MixinWorldRenderer",
+    "NoBannersMixin",
+    "NoBeaconBeamMixin",
+    "NoBossBarMixin",
+    "NoChestMixin",
+    "NoConduitEyeMixin",
     "NoEnchantGlintMixin",
     "NoRenderArmorMixin",
-    "NoRenderHeadFeatureMixin"
+    "NoRenderHeadFeatureMixin",
+    "NoShulkerBoxMixin"
   ],
   "injectors": {
     "defaultRequire": 1
