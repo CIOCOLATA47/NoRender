@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,6 +30,15 @@ public class MixinNoGrassFlowers {
                     || blockState.is(Blocks.FERN)
                     || blockState.is(Blocks.LARGE_FERN)
                     || blockState.is(Blocks.DEAD_BUSH)) {
+
+                if (blockState.is(BlockTags.LEAVES)) {
+                    return;
+                }
+
+                if (blockState.getBlock() instanceof SnowLayerBlock) {
+                    return;
+                }
+
                 ci.cancel();
             }
         }

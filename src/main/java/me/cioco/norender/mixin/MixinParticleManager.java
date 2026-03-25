@@ -17,43 +17,29 @@ public class MixinParticleManager {
     private void onAddParticle(ParticleOptions parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ, CallbackInfoReturnable<Particle> cir) {
         var type = parameters.getType();
 
-        if (NoRenderCfg.noTrialSpawnerDetection && type == ParticleTypes.TRIAL_SPAWNER_DETECTED_PLAYER)
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noTrialSpawnerDetection && type == ParticleTypes.TRIAL_SPAWNER_DETECTED_PLAYER) cir.setReturnValue(null);
         if (NoRenderCfg.noOminousSpawning && type == ParticleTypes.OMINOUS_SPAWNING) cir.setReturnValue(null);
-        if (NoRenderCfg.noTrialSpawnerFlame && type == ParticleTypes.TRIAL_SPAWNER_DETECTED_PLAYER_OMINOUS)
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noWindExplosion && (type == ParticleTypes.GUST || type == ParticleTypes.GUST_EMITTER_LARGE || type == ParticleTypes.GUST_EMITTER_SMALL))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noTrialSpawnerFlame && type == ParticleTypes.TRIAL_SPAWNER_DETECTED_PLAYER_OMINOUS) cir.setReturnValue(null);
+        if (NoRenderCfg.noWindExplosion && (type == ParticleTypes.GUST || type == ParticleTypes.GUST_EMITTER_LARGE || type == ParticleTypes.GUST_EMITTER_SMALL)) cir.setReturnValue(null);
         if (NoRenderCfg.noInfestedParticles && type == ParticleTypes.INFESTED) cir.setReturnValue(null);
         if (NoRenderCfg.noCobwebParticles && type == ParticleTypes.SMALL_FLAME) cir.setReturnValue(null);
-        if (NoRenderCfg.noExplosions && (type == ParticleTypes.EXPLOSION || type == ParticleTypes.EXPLOSION_EMITTER))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noFireworks && (type == ParticleTypes.FIREWORK || type == ParticleTypes.FLASH))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noCampfireSmoke && (type == ParticleTypes.CAMPFIRE_COSY_SMOKE || type == ParticleTypes.CAMPFIRE_SIGNAL_SMOKE))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noExplosions && (type == ParticleTypes.EXPLOSION || type == ParticleTypes.EXPLOSION_EMITTER)) cir.setReturnValue(null);
+        if (NoRenderCfg.noFireworks && (type == ParticleTypes.FIREWORK || type == ParticleTypes.FLASH)) cir.setReturnValue(null);
+        if (NoRenderCfg.noCampfireSmoke && (type == ParticleTypes.CAMPFIRE_COSY_SMOKE || type == ParticleTypes.CAMPFIRE_SIGNAL_SMOKE)) cir.setReturnValue(null);
         if (NoRenderCfg.noHeartParticles && type == ParticleTypes.HEART) cir.setReturnValue(null);
         if (NoRenderCfg.noTotemParticles && type == ParticleTypes.TOTEM_OF_UNDYING) cir.setReturnValue(null);
-        if (NoRenderCfg.noPotionParticles && (type == ParticleTypes.ENTITY_EFFECT || type == ParticleTypes.INSTANT_EFFECT))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noPotionParticles && (type == ParticleTypes.ENTITY_EFFECT || type == ParticleTypes.INSTANT_EFFECT)) cir.setReturnValue(null);
         if (NoRenderCfg.noDamageParticles && type == ParticleTypes.DAMAGE_INDICATOR) cir.setReturnValue(null);
         if (NoRenderCfg.noSweepParticles && type == ParticleTypes.SWEEP_ATTACK) cir.setReturnValue(null);
-        if (NoRenderCfg.noCritParticles && (type == ParticleTypes.CRIT || type == ParticleTypes.ENCHANTED_HIT))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noFlameParticles && (type == ParticleTypes.FLAME || type == ParticleTypes.SOUL_FIRE_FLAME))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noSmokeParticles && (type == ParticleTypes.SMOKE || type == ParticleTypes.LARGE_SMOKE))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noBubbleParticles && (type == ParticleTypes.BUBBLE || type == ParticleTypes.BUBBLE_COLUMN_UP))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noCritParticles && (type == ParticleTypes.CRIT || type == ParticleTypes.ENCHANTED_HIT)) cir.setReturnValue(null);
+        if (NoRenderCfg.noFlameParticles && (type == ParticleTypes.FLAME || type == ParticleTypes.SOUL_FIRE_FLAME)) cir.setReturnValue(null);
+        if (NoRenderCfg.noSmokeParticles && (type == ParticleTypes.SMOKE || type == ParticleTypes.LARGE_SMOKE)) cir.setReturnValue(null);
+        if (NoRenderCfg.noBubbleParticles && (type == ParticleTypes.BUBBLE || type == ParticleTypes.BUBBLE_COLUMN_UP)) cir.setReturnValue(null);
         if (NoRenderCfg.noCloudParticles && type == ParticleTypes.CLOUD) cir.setReturnValue(null);
-        if (NoRenderCfg.noAsh && (type == ParticleTypes.ASH || type == ParticleTypes.WHITE_ASH))
-            cir.setReturnValue(null);
-        if (NoRenderCfg.noSoulParticles && (type == ParticleTypes.SOUL || type == ParticleTypes.SOUL_FIRE_FLAME))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noAsh && (type == ParticleTypes.ASH || type == ParticleTypes.WHITE_ASH)) cir.setReturnValue(null);
+        if (NoRenderCfg.noSoulParticles && (type == ParticleTypes.SOUL || type == ParticleTypes.SOUL_FIRE_FLAME)) cir.setReturnValue(null);
         if (NoRenderCfg.noDragonBreath && type == ParticleTypes.DRAGON_BREATH) cir.setReturnValue(null);
-        if (NoRenderCfg.noDripParticles && (type == ParticleTypes.DRIPPING_WATER || type == ParticleTypes.DRIPPING_LAVA || type == ParticleTypes.DRIPPING_DRIPSTONE_WATER || type == ParticleTypes.DRIPPING_DRIPSTONE_LAVA))
-            cir.setReturnValue(null);
+        if (NoRenderCfg.noDripParticles && (type == ParticleTypes.DRIPPING_WATER || type == ParticleTypes.DRIPPING_LAVA || type == ParticleTypes.DRIPPING_DRIPSTONE_WATER || type == ParticleTypes.DRIPPING_DRIPSTONE_LAVA)) cir.setReturnValue(null);
         if (NoRenderCfg.noFallingDust && type == ParticleTypes.FALLING_DUST) cir.setReturnValue(null);
         if (NoRenderCfg.noSonicBoom && type == ParticleTypes.SONIC_BOOM) cir.setReturnValue(null);
         if (NoRenderCfg.noVibration && type == ParticleTypes.VIBRATION) cir.setReturnValue(null);

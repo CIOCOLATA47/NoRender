@@ -62,7 +62,7 @@ public class NoRenderGui extends Screen {
         currentY += (SPACING_Y * 5) + SECTION_MARGIN;
 
         addWorldButtons(leftCol, rightCol, currentY + 5);
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
+        currentY += (SPACING_Y * 6) + SECTION_MARGIN;
 
         addCommonParticleButtons(leftCol, rightCol, currentY + 5);
         currentY += (SPACING_Y * 8) + SECTION_MARGIN;
@@ -88,8 +88,10 @@ public class NoRenderGui extends Screen {
     private void syncWidgetPositions() {
         for (WidgetEntry entry : widgetEntries) {
             entry.widget().setX(entry.originalX());
-            entry.widget().setY(entry.originalY() - scrollOffset);
+            int newY = entry.originalY() - scrollOffset;
+            entry.widget().setY(newY);
             entry.widget().visible = true;
+            entry.widget().active = newY >= SCROLL_TOP && newY < height - 40;
         }
     }
 
@@ -110,11 +112,14 @@ public class NoRenderGui extends Screen {
                 if (label.contains(searchQuery)) {
                     entry.widget().visible = true;
                     entry.widget().setX(useLeft ? leftCol : rightCol);
-                    entry.widget().setY(y - scrollOffset);
+                    int newY = y - scrollOffset;
+                    entry.widget().setY(newY);
+                    entry.widget().active = newY >= SCROLL_TOP && newY < height - 40;
                     if (!useLeft) y += SPACING_Y;
                     useLeft = !useLeft;
                 } else {
                     entry.widget().visible = false;
+                    entry.widget().active = false;
                 }
             }
             if (!useLeft) y += SPACING_Y;
@@ -141,8 +146,8 @@ public class NoRenderGui extends Screen {
             int y = 85 - scrollOffset;
             renderSectionGroup(ctx, panelX, y, panelW, 5, "Overlays");
             y += (SPACING_Y * 5) + SECTION_MARGIN;
-            renderSectionGroup(ctx, panelX, y, panelW, 5, "World & Entities");
-            y += (SPACING_Y * 5) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 6, "World & Entities");
+            y += (SPACING_Y * 6) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 8, "Common Particles");
             y += (SPACING_Y * 8) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 6, "Sculk & Trial Chambers");
@@ -182,9 +187,13 @@ public class NoRenderGui extends Screen {
             int oldOffset = scrollOffset;
             scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - (verticalAmount * 25)));
             int diff = oldOffset - scrollOffset;
-            for (WidgetEntry entry : widgetEntries) {
-                if (entry.widget().visible) {
-                    entry.widget().setY(entry.widget().getY() + diff);
+            if (diff != 0) {
+                for (WidgetEntry entry : widgetEntries) {
+                    if (entry.widget().visible) {
+                        int newY = entry.widget().getY() + diff;
+                        entry.widget().setY(newY);
+                        entry.widget().active = newY >= SCROLL_TOP && newY < height - 40;
+                    }
                 }
             }
             return true;
@@ -268,6 +277,7 @@ public class NoRenderGui extends Screen {
                 minecraft.levelRenderer.allChanged();
             }
         });
+        add(left, y + SPACING_Y * 5, "Fog", "Hide all fog", NoRenderCfg.noFog, v -> NoRenderCfg.noFog = v);
     }
 
     private void addCommonParticleButtons(int left, int right, int y) {
