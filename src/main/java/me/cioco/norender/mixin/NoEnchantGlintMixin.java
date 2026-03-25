@@ -1,21 +1,23 @@
 package me.cioco.norender.mixin;
 
 import me.cioco.norender.config.NoRenderCfg;
-import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ItemRenderer.class)
-public abstract class NoEnchantGlintMixin {
+@Mixin(Display.ItemDisplay.ItemRenderState.class)
+public class NoEnchantGlintMixin {
 
-    @ModifyVariable(
-            method = "renderItem(Lnet/minecraft/item/ItemDisplayContext;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;II[ILjava/util/List;Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/render/item/ItemRenderState$Glint;)V",
-            at = @At("HEAD"),
-            argsOnly = true
-    )
-    private static ItemRenderState.Glint checkGlintOverride(ItemRenderState.Glint currentGlint) {
-        return NoRenderCfg.noEnchantmentGlint ? ItemRenderState.Glint.NONE : currentGlint;
+    @Inject(method = "itemStack", at = @At("HEAD"), cancellable = true)
+    private void hideGlintOnDisplay(CallbackInfoReturnable<ItemStack> cir) {
+        if (NoRenderCfg.noEnchantmentGlint) {
+            ItemStack stack = cir.getReturnValue();
+            if (stack != null && stack.isEnchanted()) {
+
+            }
+        }
     }
 }

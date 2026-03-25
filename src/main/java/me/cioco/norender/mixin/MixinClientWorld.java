@@ -1,18 +1,18 @@
 package me.cioco.norender.mixin;
 
 import me.cioco.norender.config.NoRenderCfg;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ClientWorld.class)
+@Mixin(ClientLevel.class)
 public class MixinClientWorld {
 
-    @Inject(method = "addBlockBreakParticles", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "addDestroyBlockEffect", at = @At("HEAD"), cancellable = true)
     private void onAddBlockBreakParticles(BlockPos pos, BlockState state, CallbackInfo ci) {
         if (NoRenderCfg.noBlockBreakParticles) {
             ci.cancel();

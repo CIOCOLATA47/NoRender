@@ -1,14 +1,14 @@
 package me.cioco.norender.gui;
 
 import me.cioco.norender.config.NoRenderCfg;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,7 @@ import java.util.function.Consumer;
 public class NoRenderGui extends Screen {
 
     private static final int SPACING_Y = 24;
-    private static final int SECTION_MARGIN = 35;
-    private static final int TITLE_HEIGHT = 20;
+    private static final int SECTION_MARGIN = 45;
     private static final int SCROLL_TOP = 65;
 
     private final Screen parent;
@@ -26,17 +25,18 @@ public class NoRenderGui extends Screen {
     private int scrollOffset = 0;
     private int maxScroll;
     private int contentHeight;
-    private ButtonWidget doneButton;
-    private TextFieldWidget searchField;
+    private Button doneButton;
+    private EditBox searchField;
     private String searchQuery = "";
+
     public NoRenderGui(Screen parent) {
-        super(Text.literal("NoRender Options"));
+        super(Component.literal("NoRender Options"));
         this.parent = parent;
     }
 
     @Override
     protected void init() {
-        this.clearChildren();
+        this.clearWidgets();
         this.widgetEntries.clear();
         scrollOffset = 0;
         searchQuery = "";
@@ -44,48 +44,43 @@ public class NoRenderGui extends Screen {
         int centerX = width / 2;
         int leftCol = centerX - 155;
         int rightCol = centerX + 5;
-        int currentY = 70;
 
-        searchField = new TextFieldWidget(
-                textRenderer,
-                centerX - 155, 40,
-                310, 20,
-                Text.literal("Search...")
-        );
+        int currentY = 85;
+
+        searchField = new EditBox(font, centerX - 155, 40, 310, 20, Component.literal("Search..."));
         searchField.setMaxLength(64);
-        searchField.setPlaceholder(Text.literal("Search options...").formatted(Formatting.GRAY));
-        searchField.setText("");
-        searchField.setChangedListener(text -> {
+        searchField.setHint(Component.literal("Search options...").withStyle(ChatFormatting.GRAY));
+        searchField.setValue("");
+        searchField.setResponder(text -> {
             searchQuery = text.toLowerCase().trim();
             scrollOffset = 0;
             applySearch();
-            if (!searchQuery.isEmpty()) scrollToFirstMatch();
         });
-        addDrawableChild(searchField);
+        addRenderableWidget(searchField);
 
-        addOverlayButtons(leftCol, rightCol, currentY);
+        addOverlayButtons(leftCol, rightCol, currentY + 5);
         currentY += (SPACING_Y * 5) + SECTION_MARGIN;
 
-        addWorldButtons(leftCol, rightCol, currentY);
+        addWorldButtons(leftCol, rightCol, currentY + 5);
         currentY += (SPACING_Y * 5) + SECTION_MARGIN;
 
-        addCommonParticleButtons(leftCol, rightCol, currentY);
+        addCommonParticleButtons(leftCol, rightCol, currentY + 5);
         currentY += (SPACING_Y * 8) + SECTION_MARGIN;
 
-        addNewEraParticleButtons(leftCol, rightCol, currentY);
-        currentY += (SPACING_Y * 7) + SECTION_MARGIN;
+        addNewEraParticleButtons(leftCol, rightCol, currentY + 5);
+        currentY += (SPACING_Y * 6) + SECTION_MARGIN;
 
-        addTechnicalButtons(leftCol, rightCol, currentY);
-        currentY += (SPACING_Y * 8) + SECTION_MARGIN;
+        addTechnicalButtons(leftCol, rightCol, currentY + 5);
+        currentY += (SPACING_Y * 6) + SECTION_MARGIN;
 
         contentHeight = currentY;
         maxScroll = Math.max(0, contentHeight - (height - 90));
 
-        doneButton = ButtonWidget.builder(
-                Text.literal("SAVE & EXIT").formatted(Formatting.AQUA, Formatting.BOLD),
-                b -> this.close()
-        ).dimensions(centerX - 100, height - 30, 200, 20).build();
-        addDrawableChild(doneButton);
+        doneButton = Button.builder(
+                Component.literal("SAVE & EXIT").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD),
+                b -> this.onClose()
+        ).bounds(centerX - 100, height - 30, 200, 20).build();
+        addRenderableWidget(doneButton);
 
         syncWidgetPositions();
     }
@@ -128,51 +123,40 @@ public class NoRenderGui extends Screen {
         maxScroll = Math.max(0, contentHeight - (height - 90));
     }
 
-    private void scrollToFirstMatch() {
-        for (WidgetEntry entry : widgetEntries) {
-            if (entry.widget().visible) {
-                break;
-            }
-        }
-    }
-
     @Override
-    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        renderInGameBackground(ctx);
+    public void extractRenderState(GuiGraphicsExtractor ctx, int mouseX, int mouseY, float delta) {
+        ctx.fillGradient(0, 0, width, height, 0xC0101010, 0xD0101010);
 
         int cx = width / 2;
         int panelW = 325;
         int panelX = cx - (panelW / 2);
 
-        ctx.drawCenteredTextWithShadow(textRenderer,
-                Text.literal("NoRender").formatted(Formatting.AQUA, Formatting.BOLD, Formatting.UNDERLINE),
+        ctx.centeredText(font,
+                Component.literal("NoRender").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD, ChatFormatting.UNDERLINE),
                 cx, 15, 0xFFFFFFFF);
 
         ctx.enableScissor(0, SCROLL_TOP, width, height - 40);
 
         if (searchQuery.isEmpty()) {
-            int y = 70 - scrollOffset;
+            int y = 85 - scrollOffset;
             renderSectionGroup(ctx, panelX, y, panelW, 5, "Overlays");
             y += (SPACING_Y * 5) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 5, "World & Entities");
             y += (SPACING_Y * 5) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 8, "Common Particles");
             y += (SPACING_Y * 8) + SECTION_MARGIN;
-            renderSectionGroup(ctx, panelX, y, panelW, 7, "Sculk & Trial Chambers");
-            y += (SPACING_Y * 7) + SECTION_MARGIN;
-            renderSectionGroup(ctx, panelX, y, panelW, 8, "Nether, End & Game");
+            renderSectionGroup(ctx, panelX, y, panelW, 6, "Sculk & Trial Chambers");
+            y += (SPACING_Y * 6) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 6, "Nether, End & Game");
         } else {
-            ctx.drawTextWithShadow(textRenderer,
-                    Text.literal("§7Results for: §b\"" + searchQuery + "\""),
-                    panelX, 68, 0xFFFFFF);
+            ctx.text(font, Component.literal("§7Results for: §b\"" + searchQuery + "\""), panelX, 68, 0xFFFFFF);
         }
 
         for (WidgetEntry entry : widgetEntries) {
-            ClickableWidget btn = entry.widget();
+            AbstractWidget btn = entry.widget();
             if (!btn.visible) continue;
-            int btnBottom = btn.getY() + btn.getHeight();
-            if (btnBottom > SCROLL_TOP && btn.getY() < height - 40) {
-                btn.render(ctx, mouseX, mouseY, delta);
+            if (btn.getY() + btn.getHeight() > SCROLL_TOP && btn.getY() < height - 40) {
+                btn.extractRenderState(ctx, mouseX, mouseY, delta);
             }
         }
 
@@ -181,14 +165,14 @@ public class NoRenderGui extends Screen {
         if (!searchQuery.isEmpty()) {
             boolean anyVisible = widgetEntries.stream().anyMatch(e -> e.widget().visible);
             if (!anyVisible) {
-                ctx.drawCenteredTextWithShadow(textRenderer,
-                        Text.literal("§cNo results for \"" + searchQuery + "\""),
+                ctx.centeredText(font,
+                        Component.literal("§cNo results for \"" + searchQuery + "\""),
                         cx, height / 2, 0xFFFFFFFF);
             }
         }
 
-        searchField.render(ctx, mouseX, mouseY, delta);
-        doneButton.render(ctx, mouseX, mouseY, delta);
+        searchField.extractRenderState(ctx, mouseX, mouseY, delta);
+        doneButton.extractRenderState(ctx, mouseX, mouseY, delta);
         drawScrollBar(ctx);
     }
 
@@ -209,46 +193,50 @@ public class NoRenderGui extends Screen {
     }
 
     private void add(int x, int y, String label, String desc, boolean val, Consumer<Boolean> action) {
-        ButtonWidget btn = createToggleButton(x, y, label, desc, val, action);
+        Button btn = Button.builder(getToggleText(label, val), b -> {
+            boolean currentOn = b.getMessage().getString().contains("ON");
+            action.accept(!currentOn);
+            b.setMessage(getToggleText(label, !currentOn));
+        }).bounds(x, y, 150, 20).tooltip(Tooltip.create(Component.literal("§e" + desc))).build();
         widgetEntries.add(new WidgetEntry(btn, x, y));
-        addDrawableChild(btn);
+        addRenderableWidget(btn);
     }
 
-    private void renderSectionGroup(DrawContext ctx, int x, int y, int w, int buttonRows, String title) {
-        int contentH = buttonRows * SPACING_Y;
-        drawStyledPanel(ctx, x, y - TITLE_HEIGHT - 5, w, contentH + TITLE_HEIGHT + 10);
-        ctx.drawTextWithShadow(textRenderer, "§b§l» §f" + title, x + 8, y - TITLE_HEIGHT + 1, 0xFFFFFFFF);
-        ctx.fill(x + 5, y - 6, x + w - 5, y - 5, 0x8000FFFF);
+    private void renderSectionGroup(GuiGraphicsExtractor ctx, int x, int y, int w, int buttonRows, String title) {
+        int headerHeight = 25;
+        int contentH = (buttonRows * SPACING_Y) + 10;
+
+        drawStyledPanel(ctx, x, y - 20, w, contentH + headerHeight);
+
+        ctx.text(font, "§b§l» §f" + title, x + 8, y - 12, 0xFFFFFFFF);
+
+        ctx.fill(x + 5, y + 2, x + w - 5, y + 3, 0x8000FFFF);
     }
 
-    private void drawStyledPanel(DrawContext context, int x, int y, int width, int height) {
-        context.fill(x, y, x + width, y + height, 0x90000000);
-        context.fill(x, y, x + 2, y + height, 0xFF00FFFF);
-        context.fill(x + width - 2, y, x + width, y + height, 0xFF00FFFF);
+    private void drawStyledPanel(GuiGraphicsExtractor ctx, int x, int y, int width, int height) {
+        ctx.fill(x, y, x + width, y + height, 0x90000000);
+        ctx.fill(x, y, x + 2, y + height, 0xFF00FFFF);
+        ctx.fill(x + width - 2, y, x + width, y + height, 0xFF00FFFF);
     }
 
-    private void drawScrollBar(DrawContext ctx) {
+    private void drawScrollBar(GuiGraphicsExtractor ctx) {
         if (maxScroll <= 0) return;
         int trackHeight = height - 80;
-        int barHeight = Math.max(20, (trackHeight * trackHeight) / contentHeight);
+        int barHeight = Math.max(20, (trackHeight * trackHeight) / Math.max(1, contentHeight));
         int barY = 40 + (int) ((trackHeight - barHeight) * ((float) scrollOffset / maxScroll));
         ctx.fill(width - 6, barY, width - 2, barY + barHeight, 0xFF00FFFF);
     }
 
-    private ButtonWidget createToggleButton(int x, int y, String label, String desc, boolean init, Consumer<Boolean> action) {
-        return ButtonWidget.builder(getToggleText(label, init), b -> {
-                    boolean on = b.getMessage().getString().contains("ON");
-                    action.accept(!on);
-                    b.setMessage(getToggleText(label, !on));
-                }).dimensions(x, y, 150, 20)
-                .tooltip(Tooltip.of(Text.literal("§e" + desc)))
-                .build();
+    private Component getToggleText(String label, boolean value) {
+        return Component.literal(label + ": ").append(
+                value ? Component.literal("ON").withStyle(ChatFormatting.GREEN)
+                        : Component.literal("OFF").withStyle(ChatFormatting.RED));
     }
 
-    private Text getToggleText(String label, boolean value) {
-        return Text.literal(label + ": ").append(value
-                ? Text.literal("ON").formatted(Formatting.GREEN)
-                : Text.literal("OFF").formatted(Formatting.RED));
+    @Override
+    public void onClose() {
+        NoRenderCfg.saveConfiguration();
+        if (minecraft != null) minecraft.setScreen(parent);
     }
 
     private void addOverlayButtons(int left, int right, int y) {
@@ -274,6 +262,12 @@ public class NoRenderGui extends Screen {
         add(left, y + SPACING_Y * 3, "Armor", "Hide player armor", NoRenderCfg.noArmor, v -> NoRenderCfg.noArmor = v);
         add(right, y + SPACING_Y * 3, "Potion Icons", "Hide HUD effect icons", NoRenderCfg.noPotionIcons, v -> NoRenderCfg.noPotionIcons = v);
         add(left, y + SPACING_Y * 4, "Totem Anim", "Hide big totem icon", NoRenderCfg.noTotemAnimation, v -> NoRenderCfg.noTotemAnimation = v);
+        add(right, y + SPACING_Y * 4, "Grass & Flowers", "Hide grass and flowers", NoRenderCfg.noGrassAndFlowers, v -> {
+            NoRenderCfg.noGrassAndFlowers = v;
+            if (minecraft != null && minecraft.levelRenderer != null) {
+                minecraft.levelRenderer.allChanged();
+            }
+        });
     }
 
     private void addCommonParticleButtons(int left, int right, int y) {
@@ -296,17 +290,17 @@ public class NoRenderGui extends Screen {
     }
 
     private void addNewEraParticleButtons(int left, int right, int y) {
-        add(left, y, "Trial Spawner", "Disable particle effects when Trial Spawners are detected", NoRenderCfg.noTrialSpawnerDetection, v -> NoRenderCfg.noTrialSpawnerDetection = v);
-        add(right, y, "Ominous", "Remove ominous visual effects from Trial events", NoRenderCfg.noOminousSpawning, v -> NoRenderCfg.noOminousSpawning = v);
-        add(left, y + SPACING_Y, "Infested", "Hide silverfish particle effects from infested blocks", NoRenderCfg.noInfestedParticles, v -> NoRenderCfg.noInfestedParticles = v);
-        add(right, y + SPACING_Y, "Wind Explosion", "Suppress gust/blast particles from wind events", NoRenderCfg.noWindExplosion, v -> NoRenderCfg.noWindExplosion = v);
-        add(left, y + SPACING_Y * 2, "Trial Flame", "Disable flame effects from Trial Spawner fire traps", NoRenderCfg.noTrialSpawnerFlame, v -> NoRenderCfg.noTrialSpawnerFlame = v);
-        add(right, y + SPACING_Y * 2, "Sonic Boom", "Remove shockwave particles from Warden attacks", NoRenderCfg.noSonicBoom, v -> NoRenderCfg.noSonicBoom = v);
-        add(left, y + SPACING_Y * 3, "Sculk Charge", "Hide Sculk Charge particle effects during spreading", NoRenderCfg.noSculkCharge, v -> NoRenderCfg.noSculkCharge = v);
-        add(right, y + SPACING_Y * 3, "Vibrations", "Remove Sculk vibration line particles for sensors", NoRenderCfg.noVibration, v -> NoRenderCfg.noVibration = v);
-        add(left, y + SPACING_Y * 4, "Shrieks", "Suppress loud Warden shriek particle effects", NoRenderCfg.noShriekParticle, v -> NoRenderCfg.noShriekParticle = v);
-        add(right, y + SPACING_Y * 4, "Cobwebs", "Hide cobweb visual particles in Trial areas", NoRenderCfg.noCobwebParticles, v -> NoRenderCfg.noCobwebParticles = v);
-        add(left, y + SPACING_Y * 5, "Vault Part.", "Hide vault particle effects in Trial Chambers", NoRenderCfg.noVaultParticles, v -> NoRenderCfg.noVaultParticles = v);
+        add(left, y, "Trial Spawner", "Disable particles from Spawners", NoRenderCfg.noTrialSpawnerDetection, v -> NoRenderCfg.noTrialSpawnerDetection = v);
+        add(right, y, "Ominous", "Remove ominous visual effects", NoRenderCfg.noOminousSpawning, v -> NoRenderCfg.noOminousSpawning = v);
+        add(left, y + SPACING_Y, "Infested", "Hide silverfish effects", NoRenderCfg.noInfestedParticles, v -> NoRenderCfg.noInfestedParticles = v);
+        add(right, y + SPACING_Y, "Wind Explosion", "Suppress gust particles", NoRenderCfg.noWindExplosion, v -> NoRenderCfg.noWindExplosion = v);
+        add(left, y + SPACING_Y * 2, "Trial Flame", "Disable fire trap flames", NoRenderCfg.noTrialSpawnerFlame, v -> NoRenderCfg.noTrialSpawnerFlame = v);
+        add(right, y + SPACING_Y * 2, "Sonic Boom", "Remove Warden shockwaves", NoRenderCfg.noSonicBoom, v -> NoRenderCfg.noSonicBoom = v);
+        add(left, y + SPACING_Y * 3, "Sculk Charge", "Hide spreading effects", NoRenderCfg.noSculkCharge, v -> NoRenderCfg.noSculkCharge = v);
+        add(right, y + SPACING_Y * 3, "Vibrations", "Remove vibration lines", NoRenderCfg.noVibration, v -> NoRenderCfg.noVibration = v);
+        add(left, y + SPACING_Y * 4, "Shrieks", "Suppress Warden shrieks", NoRenderCfg.noShriekParticle, v -> NoRenderCfg.noShriekParticle = v);
+        add(right, y + SPACING_Y * 4, "Cobwebs", "Hide trial cobweb visuals", NoRenderCfg.noCobwebParticles, v -> NoRenderCfg.noCobwebParticles = v);
+        add(left, y + SPACING_Y * 5, "Vault Part.", "Hide vault effects", NoRenderCfg.noVaultParticles, v -> NoRenderCfg.noVaultParticles = v);
         add(right, y + SPACING_Y * 5, "Omen Effect", "Hide omen visual effect", NoRenderCfg.noOmenEffect, v -> NoRenderCfg.noOmenEffect = v);
     }
 
@@ -322,17 +316,9 @@ public class NoRenderGui extends Screen {
         add(left, y + SPACING_Y * 4, "Shulker Boxes", "Hide shulker box models", NoRenderCfg.noShulkerBoxes, v -> NoRenderCfg.noShulkerBoxes = v);
         add(right, y + SPACING_Y * 4, "Sign Text", "Hide text rendered on signs", NoRenderCfg.noSignText, v -> NoRenderCfg.noSignText = v);
         add(left, y + SPACING_Y * 5, "Beacon Beam", "Hide beacon beam column", NoRenderCfg.noBeaconBeam, v -> NoRenderCfg.noBeaconBeam = v);
-        add(right, y + SPACING_Y * 5, "Conduit Eye", "Hide conduit eye/particle effects", NoRenderCfg.noConduitEye, v -> NoRenderCfg.noConduitEye = v);
+        add(right, y + SPACING_Y * 5, "Conduit Eye", "Hide conduit effects", NoRenderCfg.noConduitEye, v -> NoRenderCfg.noConduitEye = v);
     }
 
-    @Override
-    public void close() {
-        NoRenderCfg.saveConfiguration();
-        if (this.client != null) {
-            this.client.setScreen(this.parent);
-        }
-    }
-
-    private record WidgetEntry(ClickableWidget widget, int originalX, int originalY) {
+    private record WidgetEntry(AbstractWidget widget, int originalX, int originalY) {
     }
 }

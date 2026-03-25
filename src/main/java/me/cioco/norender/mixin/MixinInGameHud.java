@@ -1,74 +1,58 @@
 package me.cioco.norender.mixin;
 
 import me.cioco.norender.config.NoRenderCfg;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
-@Mixin(InGameHud.class)
+@Mixin(Gui.class)
 public class MixinInGameHud {
 
-    @Inject(method = "renderSpyglassOverlay", at = @At("HEAD"), cancellable = true)
-    private void handleSpyglassRender(DrawContext context, float scale, CallbackInfo ci) {
+    @Inject(method = "extractSpyglassOverlay", at = @At("HEAD"), cancellable = true)
+    private void handleSpyglassRender(GuiGraphicsExtractor graphics, float scale, CallbackInfo ci) {
         if (NoRenderCfg.noSpyglassOverlay) ci.cancel();
     }
 
-    @Inject(method = "renderPortalOverlay", at = @At("HEAD"), cancellable = true)
-    private void handlePortalRender(DrawContext context, float nauseaStrength, CallbackInfo ci) {
+    @Inject(method = "extractPortalOverlay", at = @At("HEAD"), cancellable = true)
+    private void handlePortalRender(GuiGraphicsExtractor graphics, float alpha, CallbackInfo ci) {
         if (NoRenderCfg.noPortalOverlay) ci.cancel();
     }
 
-    @Inject(method = "renderVignetteOverlay", at = @At("HEAD"), cancellable = true)
-    private void handleVignetteRender(DrawContext context, net.minecraft.entity.Entity entity, CallbackInfo ci) {
+    @Inject(method = "extractVignette", at = @At("HEAD"), cancellable = true)
+    private void handleVignetteRender(GuiGraphicsExtractor graphics, Entity camera, CallbackInfo ci) {
         if (NoRenderCfg.noVignette) ci.cancel();
     }
 
-    @Inject(method = "renderNauseaOverlay", at = @At("HEAD"), cancellable = true)
-    private void handleNauseaRender(DrawContext context, float nauseaStrength, CallbackInfo ci) {
+    @Inject(method = "extractConfusionOverlay", at = @At("HEAD"), cancellable = true)
+    private void handleNauseaRender(GuiGraphicsExtractor graphics, float strength, CallbackInfo ci) {
         if (NoRenderCfg.noNausea) ci.cancel();
     }
 
-    @Inject(
-            method = "renderScoreboardSidebar(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/scoreboard/ScoreboardObjective;)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void onRenderScoreboardSidebar(DrawContext context, ScoreboardObjective objective, CallbackInfo ci) {
-        if (NoRenderCfg.noScoreboard) {
-            ci.cancel();
-        }
+    @Inject(method = "extractScoreboardSidebar", at = @At("HEAD"), cancellable = true)
+    private void onRenderScoreboardSidebar(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (NoRenderCfg.noScoreboard) ci.cancel();
     }
 
-    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
-    private void cancelOmenOverlay(CallbackInfo ci) {
-        if (NoRenderCfg.noOmenEffect) {
-            ci.cancel();
-        }
+    @Inject(method = "extractBossOverlay", at = @At("HEAD"), cancellable = true)
+    private void handleBossBarRender(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (NoRenderCfg.noBossBar) ci.cancel();
     }
 
-    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
-    private void handleStatusEffectRender(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        if (NoRenderCfg.noPotionIcons) ci.cancel();
+    @Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
+    private void handleStatusEffectRender(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (NoRenderCfg.noPotionIcons || NoRenderCfg.noOmenEffect) ci.cancel();
     }
 
-    @ModifyArgs(method = "renderMiscOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderOverlay(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/util/Identifier;F)V", ordinal = 0))
-    private void silencePumpkinOverlay(Args args) {
-        if (NoRenderCfg.noPumpkinOverlay) {
-            args.set(2, 0.0f);
-        }
-    }
-
-    @ModifyArgs(method = "renderMiscOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderOverlay(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/util/Identifier;F)V", ordinal = 1))
-    private void silencePowderedSnowOverlay(Args args) {
-        if (NoRenderCfg.noPowderedSnowOverlay) {
-            args.set(2, 0.0f);
-        }
+    @Inject(method = "extractTextureOverlay", at = @At("HEAD"), cancellable = true)
+    private void handleTextureOverlay(GuiGraphicsExtractor extractor, Identifier texture, float alpha, CallbackInfo ci) {
+        String path = texture.getPath();
+        if (NoRenderCfg.noPumpkinOverlay && path.contains("pumpkin")) ci.cancel();
+        if (NoRenderCfg.noPowderedSnowOverlay && path.contains("powder_snow")) ci.cancel();
     }
 }
