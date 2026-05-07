@@ -7,11 +7,13 @@
     "HideSignTextMixin",
     "MixinBlockBreakParticles",
     "MixinEntityRenderer",
+    "MixinFireworkStarter",
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinInGameOverlayRenderer",
     "MixinLevelRenderer",
     "MixinLightmapRenderStateExtractor",
+    "MixinMobEffectFogEnvironment",
     "MixinNoFog",
     "MixinNoGrassFlowers",
     "MixinParticleManager",
@@ -29,6 +31,7 @@
   },
   "mixins": [
     "MixinLivingEntity",
-    "MixinNoGrassFlowersSodium"
+    "MixinNoGrassFlowersSodium",
+    "NoGlowMixin"
   ]
 }

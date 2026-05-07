@@ -59,7 +59,7 @@ public class NoRenderGui extends Screen {
         addRenderableWidget(searchField);
 
         addOverlayButtons(leftCol, rightCol, currentY + 5);
-        currentY += (SPACING_Y * 5) + SECTION_MARGIN;
+        currentY += (SPACING_Y * 6) + SECTION_MARGIN;
 
         addWorldButtons(leftCol, rightCol, currentY + 5);
         currentY += (SPACING_Y * 6) + SECTION_MARGIN;
@@ -144,8 +144,8 @@ public class NoRenderGui extends Screen {
 
         if (searchQuery.isEmpty()) {
             int y = 85 - scrollOffset;
-            renderSectionGroup(ctx, panelX, y, panelW, 5, "Overlays");
-            y += (SPACING_Y * 5) + SECTION_MARGIN;
+            renderSectionGroup(ctx, panelX, y, panelW, 6, "Overlays");
+            y += (SPACING_Y * 6) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 6, "World & Entities");
             y += (SPACING_Y * 6) + SECTION_MARGIN;
             renderSectionGroup(ctx, panelX, y, panelW, 8, "Common Particles");
@@ -259,6 +259,7 @@ public class NoRenderGui extends Screen {
         add(right, y + SPACING_Y * 3, "PowderSnow", "Removes powdersnow overlay", NoRenderCfg.noPowderedSnowOverlay, v -> NoRenderCfg.noPowderedSnowOverlay = v);
         add(left, y + SPACING_Y * 4, "Spyglass", "Hide spyglass container", NoRenderCfg.noSpyglassOverlay, v -> NoRenderCfg.noSpyglassOverlay = v);
         add(right, y + SPACING_Y * 4, "Liquid", "Hide water/lava tint", NoRenderCfg.noLiquidOverlay, v -> NoRenderCfg.noLiquidOverlay = v);
+        add(left, y + SPACING_Y * 5, "Blindness", "Hide blindness effect", NoRenderCfg.noBlindness, v -> NoRenderCfg.noBlindness = v);
     }
 
     private void addWorldButtons(int left, int right, int y) {
@@ -271,13 +272,14 @@ public class NoRenderGui extends Screen {
         add(left, y + SPACING_Y * 3, "Armor", "Hide player armor", NoRenderCfg.noArmor, v -> NoRenderCfg.noArmor = v);
         add(right, y + SPACING_Y * 3, "Potion Icons", "Hide HUD effect icons", NoRenderCfg.noPotionIcons, v -> NoRenderCfg.noPotionIcons = v);
         add(left, y + SPACING_Y * 4, "Totem Anim", "Hide big totem icon", NoRenderCfg.noTotemAnimation, v -> NoRenderCfg.noTotemAnimation = v);
-        add(right, y + SPACING_Y * 4, "Grass & Flowers", "Hide grass and flowers", NoRenderCfg.noGrassAndFlowers, v -> {
+        add(right, y + SPACING_Y * 4, "Fog", "Hide all fog", NoRenderCfg.noFog, v -> NoRenderCfg.noFog = v);
+        add(left, y + SPACING_Y * 5, "Glow", "Hide entity outlines", NoRenderCfg.noGlow, v -> NoRenderCfg.noGlow = v);
+        add(right, y + SPACING_Y * 5, "Grass & Flowers", "Hide grass and flowers", NoRenderCfg.noGrassAndFlowers, v -> {
             NoRenderCfg.noGrassAndFlowers = v;
             if (minecraft != null && minecraft.levelRenderer != null) {
                 minecraft.levelRenderer.allChanged();
             }
         });
-        add(left, y + SPACING_Y * 5, "Fog", "Hide all fog", NoRenderCfg.noFog, v -> NoRenderCfg.noFog = v);
     }
 
     private void addCommonParticleButtons(int left, int right, int y) {

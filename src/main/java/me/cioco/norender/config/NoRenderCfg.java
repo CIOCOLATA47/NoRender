@@ -32,6 +32,8 @@ public class NoRenderCfg {
     public static boolean noEnchantmentGlint = false;
     public static boolean noGrassAndFlowers = false;
     public static boolean noFog = false;
+    public static boolean noGlow = false;
+    public static boolean noBlindness = false;
 
     public static boolean noWeather = false;
     public static boolean noTotemAnimation = false;
