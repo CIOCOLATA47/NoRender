@@ -245,7 +245,7 @@ public class NoRenderGui extends Screen {
     @Override
     public void onClose() {
         NoRenderCfg.saveConfiguration();
-        if (minecraft != null) minecraft.setScreen(parent);
+        if (minecraft != null) minecraft.setScreenAndShow(parent);
     }
 
     private void addOverlayButtons(int left, int right, int y) {
@@ -276,8 +276,8 @@ public class NoRenderGui extends Screen {
         add(left, y + SPACING_Y * 5, "Glow", "Hide entity outlines", NoRenderCfg.noGlow, v -> NoRenderCfg.noGlow = v);
         add(right, y + SPACING_Y * 5, "Grass & Flowers", "Hide grass and flowers", NoRenderCfg.noGrassAndFlowers, v -> {
             NoRenderCfg.noGrassAndFlowers = v;
-            if (minecraft != null && minecraft.levelRenderer != null) {
-                minecraft.levelRenderer.allChanged();
+            if (minecraft != null && minecraft.levelExtractor != null) {
+                minecraft.levelExtractor.allChanged();
             }
         });
     }

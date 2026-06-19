@@ -11,6 +11,7 @@
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinInGameOverlayRenderer",
+    "MixinLevelExtractor",
     "MixinLevelRenderer",
     "MixinLightmapRenderStateExtractor",
     "MixinMobEffectFogEnvironment",

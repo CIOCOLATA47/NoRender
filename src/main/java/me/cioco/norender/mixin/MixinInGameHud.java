@@ -2,8 +2,8 @@ package me.cioco.norender.mixin;
 
 import me.cioco.norender.config.NoRenderCfg;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Gui.class)
+@Mixin(Hud.class)
 public class MixinInGameHud {
 
     @Inject(method = "extractSpyglassOverlay", at = @At("HEAD"), cancellable = true)
@@ -50,7 +50,7 @@ public class MixinInGameHud {
     }
 
     @Inject(method = "extractTextureOverlay", at = @At("HEAD"), cancellable = true)
-    private void handleTextureOverlay(GuiGraphicsExtractor extractor, Identifier texture, float alpha, CallbackInfo ci) {
+    private void handleTextureOverlay(GuiGraphicsExtractor graphics, Identifier texture, float alpha, CallbackInfo ci) {
         String path = texture.getPath();
         if (NoRenderCfg.noPumpkinOverlay && path.contains("pumpkin")) ci.cancel();
         if (NoRenderCfg.noPowderedSnowOverlay && path.contains("powder_snow")) ci.cancel();

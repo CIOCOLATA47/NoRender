@@ -32,7 +32,7 @@ public class Main implements ClientModInitializer {
             if (client.player == null) return;
 
             if (guiKeyBinding.consumeClick()) {
-                client.setScreen(new NoRenderGui(client.screen));
+                client.setScreenAndShow(new NoRenderGui(client.gui.screen()));
             }
         });
     }
