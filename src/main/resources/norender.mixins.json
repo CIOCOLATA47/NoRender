@@ -9,23 +9,23 @@
     "MixinEntityRenderer",
     "MixinFireworkStarter",
     "MixinGameRenderer",
+    "MixinHudElements",
     "MixinInGameHud",
     "MixinInGameOverlayRenderer",
     "MixinLevelExtractor",
     "MixinLevelRenderer",
+    "MixinLevelRendererMisc",
+    "MixinLevelRendererReadyGuard",
+    "MixinLevelRendererWorld",
     "MixinLightmapRenderStateExtractor",
     "MixinMobEffectFogEnvironment",
     "MixinNoFog",
     "MixinNoGrassFlowers",
     "MixinParticleManager",
-    "NoBannersMixin",
     "NoBeaconBeamMixin",
-    "NoChestMixin",
     "NoConduitEyeMixin",
-    "NoEnchantGlintMixin",
     "NoRenderArmorMixin",
-    "NoRenderHeadFeatureMixin",
-    "NoShulkerBoxMixin"
+    "NoRenderHeadFeatureMixin"
   ],
   "injectors": {
     "defaultRequire": 1
