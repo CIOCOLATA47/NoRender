@@ -2,6 +2,7 @@ package me.cioco.norender.util;
 
 import net.minecraft.client.Minecraft;
 
+
 public final class NoRenderUtil {
 
     private NoRenderUtil() {}

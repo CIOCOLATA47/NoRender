@@ -6,9 +6,9 @@
   "client": [
     "HideSignTextMixin",
     "MixinBlockBreakParticles",
+    "MixinCloudRenderer",
     "MixinEntityRenderer",
     "MixinFireworkStarter",
-    "MixinGameRenderer",
     "MixinHudElements",
     "MixinInGameHud",
     "MixinInGameOverlayRenderer",
@@ -16,12 +16,14 @@
     "MixinLevelRenderer",
     "MixinLevelRendererMisc",
     "MixinLevelRendererReadyGuard",
-    "MixinLevelRendererWorld",
     "MixinLightmapRenderStateExtractor",
     "MixinMobEffectFogEnvironment",
+    "MixinNausea",
     "MixinNoFog",
     "MixinNoGrassFlowers",
     "MixinParticleManager",
+    "MixinSkyRenderer",
+    "MixinWeatherEffectRenderer",
     "NoBeaconBeamMixin",
     "NoConduitEyeMixin",
     "NoRenderArmorMixin",
@@ -32,7 +34,6 @@
   },
   "mixins": [
     "MixinLivingEntity",
-    "MixinNoGrassFlowersSodium",
     "NoGlowMixin"
   ]
 }

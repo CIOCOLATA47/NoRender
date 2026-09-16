@@ -28,7 +28,11 @@
     }
   },
   "mixins": [
-    "norender.mixins.json"
+    "norender.mixins.json",
+    {
+      "config": "norender.sodium.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

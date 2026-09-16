@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 public class Main implements ClientModInitializer {
 
@@ -30,8 +29,8 @@ public class Main implements ClientModInitializer {
         guiKeyBinding = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping(
                         "key.norender.open_gui",
-                        InputConstants.Type.KEYSYM,
-                        GLFW.GLFW_KEY_UNKNOWN,
+                        InputConstants.Type.KEYBOARD,
+                        InputConstants.KEY_J,
                         CATEGORY_NORENDER
                 )
         );
@@ -44,7 +43,7 @@ public class Main implements ClientModInitializer {
                 return;
             }
 
-            if (guiKeyBinding.consumeClick()) {
+            if (guiKeyBinding != null && guiKeyBinding.consumeClick()) {
                 client.setScreenAndShow(
                         new NoRenderGui(client.gui.screen())
                 );

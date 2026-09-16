@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "me.cioco.norender.mixin.sodium",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "me.cioco.norender.MixinPlugin",
+  "client": [
+    "MixinNoGrassFlowersSodium"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
