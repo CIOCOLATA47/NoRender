@@ -24,7 +24,6 @@
     "MixinNoGrassFlowers",
     "MixinParticleManager",
     "MixinPowderedSnowFogEnvironment",
-    "MixinSkyRenderer",
     "MixinWaterFogEnvironment",
     "MixinWeatherEffectRenderer",
     "NoBeaconBeamMixin",

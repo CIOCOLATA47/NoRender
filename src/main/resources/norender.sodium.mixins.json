@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "me.cioco.norender.MixinPlugin",
   "client": [
-    "MixinNoGrassFlowersSodium"
+    "MixinNoGrassFlowersSodium",
+    "MixinSodiumWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
